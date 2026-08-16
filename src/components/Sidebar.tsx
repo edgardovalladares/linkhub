@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -40,8 +40,15 @@ export default function Sidebar({ user }: SidebarProps) {
   const [inviteInput, setInviteInput] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
+  const [originUrl, setOriginUrl] = useState('');
 
   const activeCompany = user?.activeCompany;
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setOriginUrl(window.location.origin);
+    }
+  }, []);
 
   const handleCopyCode = () => {
     if (activeCompany?.inviteCode) {
@@ -95,6 +102,8 @@ export default function Sidebar({ user }: SidebarProps) {
     { name: 'Mi Perfil', href: '/dashboard/profile', icon: User },
   ];
 
+  const qrInvitationUrl = `${originUrl || 'https://linkhub.edgardovalladares.com'}/login?code=${activeCompany?.inviteCode || 'LINK-SAFE1'}`;
+
   const sidebarContent = (
     <div className="flex flex-col h-full bg-white dark:bg-[#161618] text-[#202124] dark:text-[#E8EAED] font-sans">
       
@@ -115,8 +124,8 @@ export default function Sidebar({ user }: SidebarProps) {
         </button>
       </div>
 
-      {/* ACTIVE COMPANY BRANDING - CENTERED LOGO AND INFO (PURE WHITE IN LIGHT, OBSIDIAN IN DARK) */}
-      <div className="p-4 border-b border-[#E8EAED] dark:border-[#2B2B30] bg-white dark:bg-[#161618] flex flex-col items-center justify-center text-center space-y-2.5">
+      {/* ACTIVE COMPANY BRANDING - LARGE LOGO AND CLEAN NO-LINE CONTAINER */}
+      <div className="p-4 border-b border-[#E8EAED] dark:border-[#2B2B30] bg-white dark:bg-[#161618] flex flex-col items-center justify-center text-center space-y-3">
         <div className="flex items-center justify-center gap-2 w-full">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#5F6368] dark:text-[#9AA0A6] font-heading">
             Empresa Activa
@@ -126,13 +135,13 @@ export default function Sidebar({ user }: SidebarProps) {
           </span>
         </div>
 
-        {/* CENTERED LARGE COMPANY LOGO OR HEADING */}
-        <div className="flex flex-col items-center justify-center space-y-1.5 w-full">
+        {/* CENTERED PROMINENT LARGE COMPANY LOGO OR HEADING */}
+        <div className="flex flex-col items-center justify-center space-y-2 w-full py-1">
           {activeCompany?.logoUrl ? (
             <img
               src={activeCompany.logoUrl}
               alt={activeCompany.name}
-              className="h-12 w-auto max-w-full object-contain mx-auto transition-all duration-200"
+              className="h-16 sm:h-20 w-auto max-w-[200px] object-contain mx-auto transition-all duration-200"
             />
           ) : null}
 
@@ -147,7 +156,7 @@ export default function Sidebar({ user }: SidebarProps) {
         </div>
 
         {activeCompany?.inviteCode && (
-          <div className="pt-2 border-t border-[#E8EAED] dark:border-[#2B2B30] flex items-center justify-center gap-3 w-full text-xs">
+          <div className="pt-2 flex items-center justify-center gap-3 w-full text-xs">
             <div className="text-center">
               <span className="text-[10px] text-[#5F6368] dark:text-[#9AA0A6] font-medium block">Código Invitación</span>
               <span className="font-mono text-xs font-bold text-[#DC2626] dark:text-[#EF4444]">{activeCompany.inviteCode}</span>
@@ -156,7 +165,7 @@ export default function Sidebar({ user }: SidebarProps) {
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setShowQRModal(true)}
-                title="Ver Código QR"
+                title="Ver Código QR de Invitación"
                 className="p-1.5 rounded-sm bg-white dark:bg-[#1E1E22] hover:bg-[#E8EAED] dark:hover:bg-[#2B2B30] text-[#3C4043] dark:text-[#E8EAED] border border-[#E8EAED] dark:border-[#2B2B30] material-transition"
               >
                 <QrCode className="w-3.5 h-3.5 text-[#DC2626] dark:text-[#EF4444]" />
@@ -321,12 +330,12 @@ export default function Sidebar({ user }: SidebarProps) {
               Código QR de Invitación
             </h3>
             <p className="text-xs text-[#5F6368] dark:text-[#9AA0A6]">
-              Escanea este código QR con cualquier teléfono móvil para ingresar el código de invitación a <strong>{activeCompany?.name}</strong>.
+              Escanea este código QR con cualquier teléfono móvil para unirte directamente a <strong>{activeCompany?.name}</strong>.
             </p>
 
             <div className="p-4 bg-white border border-gray-300 rounded-sm inline-block mx-auto shadow-sm">
               <QRCodeSVG
-                value={`https://linkhub.app/join?code=${activeCompany?.inviteCode || 'LINK-SAFE1'}`}
+                value={qrInvitationUrl}
                 size={180}
                 bgColor="#FFFFFF"
                 fgColor="#121212"
@@ -335,7 +344,7 @@ export default function Sidebar({ user }: SidebarProps) {
             </div>
 
             <div className="bg-[#F8F9FA] dark:bg-[#1E1E22] p-2.5 rounded-sm border border-[#E8EAED] dark:border-[#2B2B30]">
-              <span className="text-[10px] text-[#5F6368] dark:text-[#9AA0A6] block uppercase font-bold">Código</span>
+              <span className="text-[10px] text-[#5F6368] dark:text-[#9AA0A6] block uppercase font-bold">Código Directo</span>
               <span className="font-mono text-sm font-extrabold text-[#DC2626] dark:text-[#EF4444]">
                 {activeCompany?.inviteCode}
               </span>

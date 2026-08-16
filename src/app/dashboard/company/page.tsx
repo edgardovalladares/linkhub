@@ -12,6 +12,7 @@ export default function CompanyPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const [originUrl, setOriginUrl] = useState('');
 
   // Form states
   const [name, setName] = useState('');
@@ -55,6 +56,9 @@ export default function CompanyPage() {
 
   useEffect(() => {
     fetchCompanyData();
+    if (typeof window !== 'undefined') {
+      setOriginUrl(window.location.origin);
+    }
   }, []);
 
   const isAdmin = currentUserRole === 'ADMIN' || currentUserRole === 'OWNER';
@@ -113,23 +117,25 @@ export default function CompanyPage() {
     }
   };
 
+  const qrInvitationUrl = `${originUrl || 'https://linkhub.edgardovalladares.com'}/login?code=${company?.inviteCode || 'LINK-SAFE1'}`;
+
   return (
-    <div className="flex-1 flex flex-col bg-[#F8F9FA] dark:bg-[#121212] text-[#202124] dark:text-[#E8EAED] font-sans material-transition">
+    <div className="flex-1 flex flex-col bg-[#F8F9FA] dark:bg-[#0E0E10] text-[#202124] dark:text-[#F0F0F2] font-sans material-transition">
       <Header
         title="Perfil de Empresa & Equipo"
         subtitle="Configuración de membrete, marca, código QR de invitación e integrantes"
       />
 
-      <div className="p-4 sm:p-8 space-y-6 sm:space-y-8 w-full max-w-full mx-auto">
+      <div className="p-6 sm:p-10 space-y-6 sm:space-y-8 w-full max-w-full mx-auto">
         
         {loading ? (
           <p className="text-[#5F6368] dark:text-[#9AA0A6] text-sm py-12 text-center font-medium">Cargando datos de la empresa...</p>
         ) : (
           <>
             {/* COMPANY DETAILS CARD */}
-            <div className="bg-white dark:bg-[#1E1E1E] border border-[#E8EAED] dark:border-[#2D2D2D] rounded-sm p-4 sm:p-8 shadow-material-sm space-y-6">
+            <div className="bg-white dark:bg-[#161618] border border-[#E8EAED] dark:border-[#2B2B30] rounded-sm p-4 sm:p-8 shadow-material-sm space-y-6">
               
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-[#E8EAED] dark:border-[#2D2D2D]">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-[#E8EAED] dark:border-[#2B2B30]">
                 <div>
                   <h3 className="text-lg font-bold text-[#202124] dark:text-white flex items-center gap-2 font-heading">
                     <Building2 className="w-5 h-5 text-[#DC2626] dark:text-[#EF4444]" />
@@ -148,13 +154,13 @@ export default function CompanyPage() {
                 )}
               </div>
 
-              {/* QR CODE INVITATION CARD */}
+              {/* QR CODE INVITATION CARD WITH DYNAMIC ORIGIN URL */}
               {company?.inviteCode && (
-                <div className="bg-[#F8F9FA] dark:bg-[#252526] border border-[#DADCE0] dark:border-[#383838] p-4 rounded-sm flex flex-col sm:flex-row items-center gap-6">
+                <div className="bg-[#F8F9FA] dark:bg-[#1E1E22] border border-[#DADCE0] dark:border-[#2B2B30] p-4 rounded-sm flex flex-col sm:flex-row items-center gap-6">
                   <div className="p-3 bg-white border border-gray-300 rounded-sm shrink-0 shadow-xs">
                     <QRCodeSVG
-                      value={`https://linkhub.app/join?code=${company.inviteCode}`}
-                      size={120}
+                      value={qrInvitationUrl}
+                      size={130}
                       bgColor="#FFFFFF"
                       fgColor="#121212"
                       level="H"
@@ -167,10 +173,10 @@ export default function CompanyPage() {
                       Código QR de Invitación de Equipo
                     </h4>
                     <p className="text-xs text-[#5F6368] dark:text-[#9AA0A6] leading-relaxed">
-                      Cualquier colaborador puede escanear este código QR directamente con su teléfono para unirse a <strong>{company.name}</strong>.
+                      Cualquier colaborador puede escanear este código QR directamente para unirse a <strong>{company.name}</strong>. Si no tiene cuenta, se redirigirá automáticamente para registrarse con el código precompletado.
                     </p>
-                    <p className="text-xs font-mono font-bold text-[#DC2626] dark:text-[#EF4444]">
-                      Código Directo: {company.inviteCode}
+                    <p className="text-xs font-mono font-bold text-[#DC2626] dark:text-[#EF4444] break-all">
+                      URL Directa: {qrInvitationUrl}
                     </p>
                   </div>
                 </div>
@@ -195,7 +201,7 @@ export default function CompanyPage() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="ej: Eliteh Security"
-                      className="w-full bg-white dark:bg-[#252526] border border-[#DADCE0] dark:border-[#383838] rounded-sm px-3 py-2 text-sm text-[#202124] dark:text-white focus:outline-none focus:border-[#DC2626] disabled:opacity-60 font-medium"
+                      className="w-full bg-white dark:bg-[#1E1E22] border border-[#DADCE0] dark:border-[#2B2B30] rounded-sm px-3 py-2 text-sm text-[#202124] dark:text-white focus:outline-none focus:border-[#DC2626] disabled:opacity-60 font-medium"
                     />
                   </div>
 
@@ -207,7 +213,7 @@ export default function CompanyPage() {
                       value={logoUrl}
                       onChange={(e) => setLogoUrl(e.target.value)}
                       placeholder="https://ejemplo.com/mi-logo.png"
-                      className="w-full bg-white dark:bg-[#252526] border border-[#DADCE0] dark:border-[#383838] rounded-sm px-3 py-2 text-sm text-[#202124] dark:text-white focus:outline-none focus:border-[#DC2626] disabled:opacity-60 font-medium"
+                      className="w-full bg-white dark:bg-[#1E1E22] border border-[#DADCE0] dark:border-[#2B2B30] rounded-sm px-3 py-2 text-sm text-[#202124] dark:text-white focus:outline-none focus:border-[#DC2626] disabled:opacity-60 font-medium"
                     />
                   </div>
                 </div>
@@ -221,7 +227,7 @@ export default function CompanyPage() {
                       value={taxId}
                       onChange={(e) => setTaxId(e.target.value)}
                       placeholder="08011995123456"
-                      className="w-full bg-white dark:bg-[#252526] border border-[#DADCE0] dark:border-[#383838] rounded-sm px-3 py-2 text-sm text-[#202124] dark:text-white focus:outline-none focus:border-[#DC2626] disabled:opacity-60 font-medium"
+                      className="w-full bg-white dark:bg-[#1E1E22] border border-[#DADCE0] dark:border-[#2B2B30] rounded-sm px-3 py-2 text-sm text-[#202124] dark:text-white focus:outline-none focus:border-[#DC2626] disabled:opacity-60 font-medium"
                     />
                   </div>
                   <div>
@@ -232,7 +238,7 @@ export default function CompanyPage() {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="+504 2233-4455"
-                      className="w-full bg-white dark:bg-[#252526] border border-[#DADCE0] dark:border-[#383838] rounded-sm px-3 py-2 text-sm text-[#202124] dark:text-white focus:outline-none focus:border-[#DC2626] disabled:opacity-60 font-medium"
+                      className="w-full bg-white dark:bg-[#1E1E22] border border-[#DADCE0] dark:border-[#2B2B30] rounded-sm px-3 py-2 text-sm text-[#202124] dark:text-white focus:outline-none focus:border-[#DC2626] disabled:opacity-60 font-medium"
                     />
                   </div>
                   <div>
@@ -243,7 +249,7 @@ export default function CompanyPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="contacto@empresa.com"
-                      className="w-full bg-white dark:bg-[#252526] border border-[#DADCE0] dark:border-[#383838] rounded-sm px-3 py-2 text-sm text-[#202124] dark:text-white focus:outline-none focus:border-[#DC2626] disabled:opacity-60 font-medium"
+                      className="w-full bg-white dark:bg-[#1E1E22] border border-[#DADCE0] dark:border-[#2B2B30] rounded-sm px-3 py-2 text-sm text-[#202124] dark:text-white focus:outline-none focus:border-[#DC2626] disabled:opacity-60 font-medium"
                     />
                   </div>
                 </div>
@@ -256,7 +262,7 @@ export default function CompanyPage() {
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     placeholder="Barrio El Centro, Calle Principal..."
-                    className="w-full bg-white dark:bg-[#252526] border border-[#DADCE0] dark:border-[#383838] rounded-sm px-3 py-2 text-sm text-[#202124] dark:text-white focus:outline-none focus:border-[#DC2626] disabled:opacity-60 font-medium"
+                    className="w-full bg-white dark:bg-[#1E1E22] border border-[#DADCE0] dark:border-[#2B2B30] rounded-sm px-3 py-2 text-sm text-[#202124] dark:text-white focus:outline-none focus:border-[#DC2626] disabled:opacity-60 font-medium"
                   />
                 </div>
 
@@ -268,7 +274,7 @@ export default function CompanyPage() {
                 )}
 
                 {isAdmin && (
-                  <div className="flex justify-end pt-3 border-t border-[#E8EAED] dark:border-[#2D2D2D]">
+                  <div className="flex justify-end pt-3 border-t border-[#E8EAED] dark:border-[#2B2B30]">
                     <button
                       type="submit"
                       disabled={saving}
@@ -284,8 +290,8 @@ export default function CompanyPage() {
             </div>
 
             {/* TEAM MEMBERS MANAGEMENT TABLE */}
-            <div className="bg-white dark:bg-[#1E1E1E] border border-[#E8EAED] dark:border-[#2D2D2D] rounded-sm p-4 sm:p-8 shadow-material-sm space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b border-[#E8EAED] dark:border-[#2D2D2D]">
+            <div className="bg-white dark:bg-[#161618] border border-[#E8EAED] dark:border-[#2B2B30] rounded-sm p-4 sm:p-8 shadow-material-sm space-y-6">
+              <div className="flex items-center justify-between pb-4 border-b border-[#E8EAED] dark:border-[#2B2B30]">
                 <div>
                   <h3 className="text-lg font-bold text-[#202124] dark:text-white flex items-center gap-2 font-heading">
                     <Users className="w-5 h-5 text-[#DC2626] dark:text-[#EF4444]" />
@@ -300,16 +306,16 @@ export default function CompanyPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-[#F8F9FA] dark:bg-[#252526] border-b border-[#E8EAED] dark:border-[#2D2D2D] text-[11px] font-bold text-[#5F6368] dark:text-[#9AA0A6] uppercase tracking-wider font-heading">
+                    <tr className="bg-[#F8F9FA] dark:bg-[#1E1E22] border-b border-[#E8EAED] dark:border-[#2B2B30] text-[11px] font-bold text-[#5F6368] dark:text-[#9AA0A6] uppercase tracking-wider font-heading">
                       <th className="py-3 px-4">Usuario / Colaborador</th>
                       <th className="py-3 px-4">Correo</th>
                       <th className="py-3 px-4">Rol Asignado</th>
                       {isAdmin && <th className="py-3 px-4 text-right">Acciones</th>}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#E8EAED] dark:divide-[#2D2D2D] text-xs font-medium text-[#202124] dark:text-[#E8EAED]">
+                  <tbody className="divide-y divide-[#E8EAED] dark:divide-[#2B2B30] text-xs font-medium text-[#202124] dark:text-[#E8EAED]">
                     {members.map((m) => (
-                      <tr key={m.id} className="hover:bg-[#F8F9FA] dark:hover:bg-[#252526] material-transition">
+                      <tr key={m.id} className="hover:bg-[#F8F9FA] dark:hover:bg-[#1E1E22] material-transition">
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-[#DC2626] text-white flex items-center justify-center font-bold text-xs font-heading">
@@ -331,13 +337,13 @@ export default function CompanyPage() {
                             <select
                               value={m.role}
                               onChange={(e) => handleChangeRole(m.id, e.target.value)}
-                              className="bg-white dark:bg-[#252526] border border-[#DADCE0] dark:border-[#383838] rounded-sm px-2.5 py-1 text-xs text-[#202124] dark:text-white font-bold focus:outline-none focus:border-[#DC2626]"
+                              className="bg-white dark:bg-[#1E1E22] border border-[#DADCE0] dark:border-[#2B2B30] rounded-sm px-2.5 py-1 text-xs text-[#202124] dark:text-white font-bold focus:outline-none focus:border-[#DC2626]"
                             >
                               <option value="ADMIN">ADMINISTRADOR</option>
                               <option value="TECHNICIAN">TÉCNICO</option>
                             </select>
                           ) : (
-                            <span className="font-bold px-2.5 py-1 rounded-sm bg-[#F8F9FA] dark:bg-[#252526] border border-[#DADCE0] dark:border-[#383838] text-[11px]">
+                            <span className="font-bold px-2.5 py-1 rounded-sm bg-[#F8F9FA] dark:bg-[#1E1E22] border border-[#DADCE0] dark:border-[#2B2B30] text-[11px]">
                               {m.role === 'ADMIN' || m.role === 'OWNER' ? 'ADMINISTRADOR' : 'TÉCNICO'}
                             </span>
                           )}

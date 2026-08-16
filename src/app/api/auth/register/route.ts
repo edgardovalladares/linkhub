@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { hashPassword, createSession } from '@/lib/auth';
 import { generateInviteCode } from '@/lib/utils';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
   try {
     const { name, email, password, companyName, inviteCode } = await req.json();

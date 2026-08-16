@@ -1,0 +1,210 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  phone        String?
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  companyMembers CompanyMember[]
+  createdOrders  WorkOrder[]     @relation("CreatedWorkOrders")
+  inspections    InspectionDiagnostic[] @relation("InspectorRelation")
+  createdReports WorkReport[]    @relation("ReportCreator")
+  createdSales   Sale[]          @relation("SaleCreator")
+}
+
+model Company {
+  id          String   @id @default(uuid())
+  name        String
+  taxId       String?  // RTN / RNC / ID Fiscal
+  phone       String?
+  email       String?
+  address     String?
+  logoUrl     String?
+  inviteCode  String   @unique // Código de invitación para otros usuarios (ej: LINK-X9A2K)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members     CompanyMember[]
+  clients     Client[]
+  products    Product[]
+  workOrders  WorkOrder[]
+  workReports WorkReport[]
+  sales       Sale[]
+}
+
+model CompanyMember {
+  id        String   @id @default(uuid())
+  userId    String
+  companyId String
+  role      String   @default("TECHNICIAN") // OWNER, ADMIN, TECHNICIAN
+  joinedAt  DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, companyId])
+}
+
+model Client {
+  id            String   @id @default(uuid())
+  companyId     String
+  code          String?  // Código interno ej: CLI-001
+  name          String   // ej: Industrias Even Ezer
+  contactPerson String?
+  phone         String?
+  email         String?
+  address       String?
+  city          String?  // ej: Jutiquile
+  taxId         String?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company    Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  workOrders WorkOrder[]
+  sales      Sale[]
+}
+
+model Product {
+  id            String   @id @default(uuid())
+  companyId     String
+  sku           String?  // Código de producto / parte
+  name          String   // ej: Video Balun, Disco duro DVR 1TB, Fuente 12V 5A
+  description   String?
+  category      String   @default("GENERAL") // CCTV, NETWORKING, HARDWARE, CABLE, ACCESSORY, POWER
+  stockQuantity Int      @default(0)
+  minStockAlert Int      @default(5)
+  unitCost      Float    @default(0.0)
+  salePrice     Float    @default(0.0)
+  unit          String   @default("PZA") // PZA, METRO, CAJA, ROLLO, KIT
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company         Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  reportMaterials ReportMaterial[]
+  saleItems       SaleItem[]
+}
+
+model WorkOrder {
+  id            String    @id @default(uuid())
+  companyId     String
+  clientId      String
+  createdById   String
+  orderNumber   String    // ej: OT-2026-001
+  title         String    // ej: Mantenimiento y corrección del sistema de videovigilancia
+  serviceType   String    // INSTALLATION_SALE, ONLY_INSTALLATION, REPAIR, MAINTENANCE
+  status        String    @default("PENDING") // PENDING, IN_PROGRESS, DIAGNOSED, COMPLETED, CANCELLED
+  priority      String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  scheduledDate DateTime?
+  completedDate DateTime?
+  location      String?   // ej: Jutiquile
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  company     Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  client      Client                @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdBy   User                  @relation("CreatedWorkOrders", fields: [createdById], references: [id])
+  diagnostic  InspectionDiagnostic?
+  workReports WorkReport[]
+  sales       Sale[]
+}
+
+model InspectionDiagnostic {
+  id                 String   @id @default(uuid())
+  workOrderId        String   @unique
+  inspectorId        String
+  problemDescription String   // 1. Problemática encontrada
+  inspectionFindings String?  // Detalles de componentes dañados, polaridad, derivaciones UTP, etc.
+  recommendations    String?  // Recomendaciones previas al trabajo
+  inspectedAt        DateTime @default(now())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  inspector User      @relation("InspectorRelation", fields: [inspectorId], references: [id])
+}
+
+model WorkReport {
+  id               String   @id @default(uuid())
+  companyId        String
+  workOrderId      String?
+  createdById      String
+  reportCode       String   // ej: INF-2026-001
+  clientName       String   // ej: Industrias Even Ezer
+  location         String   // ej: Jutiquile
+  serviceType      String   // ej: Mantenimiento y corrección del sistema de videovigilancia
+  problematicFound String   // Sección 1: Problemática encontrada
+  workDone         String   // Sección 2: Trabajos realizados
+  finalResult      String   // Sección 4: Resultado final
+  status           String   @default("COMPLETED") // DRAFT, COMPLETED
+  technicianName   String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  company   Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  workOrder WorkOrder?       @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
+  createdBy User             @relation("ReportCreator", fields: [createdById], references: [id])
+  materials ReportMaterial[]
+}
+
+model ReportMaterial {
+  id          String  @id @default(uuid())
+  reportId    String
+  productId   String?
+  description String  // Sección 3: Materiales utilizados (ej: 1 video balun, 1 fuente 12V/5A, etc.)
+  quantity    Int     @default(1)
+  unit        String  @default("PZA")
+  unitPrice   Float?  @default(0.0)
+
+  report  WorkReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  product Product?   @relation(fields: [productId], references: [id], onDelete: SetNull)
+}
+
+model Sale {
+  id             String   @id @default(uuid())
+  companyId      String
+  clientId       String?
+  workOrderId    String?
+  createdById    String
+  invoiceNumber  String   // ej: FAC-2026-001
+  totalAmount    Float    @default(0.0)
+  taxAmount      Float    @default(0.0)
+  discountAmount Float    @default(0.0)
+  paymentStatus  String   @default("PAID") // PENDING, PAID, PARTIAL, CANCELLED
+  paymentMethod  String   @default("CASH") // CASH, TRANSFER, CARD
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  client    Client?    @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  workOrder WorkOrder? @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
+  createdBy User       @relation("SaleCreator", fields: [createdById], references: [id])
+  items     SaleItem[]
+}
+
+model SaleItem {
+  id          String  @id @default(uuid())
+  saleId      String
+  productId   String?
+  description String
+  quantity    Int     @default(1)
+  unitPrice   Float   @default(0.0)
+  subtotal    Float   @default(0.0)
+
+  sale    Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+}

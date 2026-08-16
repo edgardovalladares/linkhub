@@ -251,8 +251,8 @@ export default function Sidebar({ user }: SidebarProps) {
 
   return (
     <>
-      {/* DESKTOP SIDEBAR WITH SLEEK RIGHT SHADOW */}
-      <aside className="hidden md:flex w-72 border-r border-[#E8EAED] dark:border-[#2B2B30] h-screen sticky top-0 shadow-[4px_0_16px_rgba(0,0,0,0.05)] dark:shadow-[4px_0_20px_rgba(0,0,0,0.4)] z-[110] shrink-0">
+      {/* DESKTOP SIDEBAR WITH SLEEK RIGHT SHADOW (NO DOUBLE BORDER LINE) */}
+      <aside className="hidden md:flex w-72 h-screen sticky top-0 shadow-[4px_0_16px_rgba(0,0,0,0.04)] dark:shadow-[4px_0_20px_rgba(0,0,0,0.4)] z-[110] shrink-0">
         {sidebarContent}
       </aside>
 
